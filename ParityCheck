@@ -1,0 +1,45 @@
+#include <iostream>
+#include <bitset>
+using namespace std;
+
+bool getParity(unsigned int n){
+    bool p = 0;
+    while(n){
+        p = !p;
+        n = n & (n-1);
+    }
+    return p;
+}
+
+int main() {
+    unsigned int transmitted;
+    unsigned int received;
+    
+    cout <<"------------------------\n";
+    cout <<"Parity Check taking place\n";
+    cout <<"------------------------\n";
+    
+    cout <<"Enter the number(data) that is being transmitted:\t";
+    cin >> transmitted;
+    
+    cout <<"Enter the number(data) that is being received:\t";
+    cin >> received;
+    
+    cout <<"\nTransmitted Binary: " <<bitset<8>(transmitted);
+    cout <<"\nReceived Binary: " <<bitset<8>(received);
+    
+    bool txParity = getParity(transmitted);
+    bool rxParity = getParity(received);
+    
+    cout <<"\nParity of transmitted data :" << (txParity ? "Odd" : "Even");
+    cout <<"\nParity of received transmitted data :" << (rxParity ? "Odd" : "Even");
+    cout<<"\n------------------------\n";
+    if(txParity != rxParity){
+        cout <<"Result : Error Detected";
+    }
+    else{
+        cout <<"Result : Error is not detected";
+    }
+    cout<<"\n------------------------\n";
+    return 0;
+}
