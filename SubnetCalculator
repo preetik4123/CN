@@ -1,0 +1,116 @@
+#include <iostream>
+#include <cmath>
+#include <sstream>
+using namespace std;
+
+// Parse IP string into int array
+void parseIP(const string& ip, int parts[4]) {
+    sscanf(ip.c_str(), "%d.%d.%d.%d", &parts[0], &parts[1], &parts[2], &parts[3]);
+}
+
+// Convert int array to string
+string ipToString(int ip[4]) {
+    stringstream ss;
+    ss << ip[0] << "." << ip[1] << "." << ip[2] << "." << ip[3];
+    return ss.str();
+}
+
+// Add increment to IP
+void incrementIP(int ip[4], int inc) {
+    int carry = inc;
+    for (int i = 3; i >= 0 && carry > 0; i--) {
+        int total = ip[i] + carry;
+        ip[i] = total % 256;
+        carry = total / 256;
+    }
+}
+
+// Convert prefix → subnet mask
+void prefixToMask(int prefix, int mask[4]) {
+    for (int i = 0; i < 4; i++) mask[i] = 0;
+
+    for (int i = 0; i < prefix; i++)
+        mask[i/8] |= (128 >> (i % 8));
+}
+
+// Calculate prefix from host requirement
+int calculatePrefix(int hosts) {
+    int bits = ceil(log2(hosts + 2)); // +2 for network & broadcast
+    return 32 - bits;
+}
+
+int main() {
+    int numNetworks, hostsPerNetwork;
+    string baseIP;
+
+    cout << "Enter number of networks: ";
+    cin >> numNetworks;
+
+    cout << "Enter number of systems per network: ";
+    cin >> hostsPerNetwork;
+
+    cout << "Enter base network IP (e.g., 192.168.0.0): ";
+    cin >> baseIP;
+
+    int currentIP[4];
+    parseIP(baseIP, currentIP);
+
+    int prefix = calculatePrefix(hostsPerNetwork);
+    int mask[4];
+    prefixToMask(prefix, mask);
+
+    int blockSize = pow(2, 32 - prefix);
+
+    cout << "\n--- Subnet Details ---\n";
+    cout << "Hosts per network: " << hostsPerNetwork 
+         << "  Prefix: /" << prefix << endl << endl;
+
+    for (int net = 0; net < numNetworks; net++) {
+
+        int startIP[4], endIP[4], network[4], broadcast[4];
+        for (int i = 0; i < 4; i++)
+            startIP[i] = currentIP[i];
+
+        // Network address = current & mask
+        for (int i = 0; i < 4; i++)
+            network[i] = startIP[i] & mask[i];
+
+        // End IP = start + blockSize - 1
+        incrementIP(currentIP, blockSize - 1);
+        for (int i = 0; i < 4; i++)
+            endIP[i] = currentIP[i];
+
+        // Broadcast = network | (255 - mask)
+        for (int i = 0; i < 4; i++)
+            broadcast[i] = network[i] | (255 - mask[i]);
+
+        // First Host = network + 1
+        int firstHost[4];
+        for (int i = 0; i < 4; i++)
+            firstHost[i] = network[i];
+        firstHost[3]++;
+
+        // Last Host = broadcast - 1
+        int lastHost[4];
+        for (int i = 0; i < 4; i++)
+            lastHost[i] = broadcast[i];
+        lastHost[3]--;
+
+        int totalHosts = pow(2, 32 - prefix) - 2;
+
+        cout << "Network " << net + 1 << ":\n";
+        cout << "IP Range:          " << ipToString(startIP) << " - " << ipToString(endIP) << endl;
+        cout << "Network Address:   " << ipToString(network) << endl;
+        cout << "Broadcast Address: " << ipToString(broadcast) << endl;
+        cout << "First Host:        " << ipToString(firstHost) << endl;
+        cout << "Last Host:         " << ipToString(lastHost) << endl;
+        cout << "Subnet Mask:       " << ipToString(mask) << endl;
+        cout << "Total Hosts:       " << totalHosts << endl;
+        cout << "-----------------------------------\n";
+
+        // Move to next subnet start
+        incrementIP(currentIP, 1);
+    }
+
+    return 0;
+}
