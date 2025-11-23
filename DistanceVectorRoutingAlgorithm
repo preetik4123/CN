@@ -1,0 +1,60 @@
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+#define INF 999
+#define MAX 10
+
+int main() {
+    int cost[MAX][MAX], dist[MAX][MAX], via[MAX][MAX];
+    int nodes;
+
+    cout << "Enter number of nodes: ";
+    cin >> nodes;
+
+    cout << "Enter cost adjacency matrix (999 for no direct link):\n";
+    for(int i = 0; i < nodes; i++){
+        for(int j = 0; j < nodes; j++){
+            cin >> cost[i][j];
+            dist[i][j] = cost[i][j];
+
+            if(cost[i][j] != INF && i != j)
+                via[i][j] = j;
+            else
+                via[i][j] = -1;
+        }
+    }
+
+    // Distance Vector / Floyd-Warshall Logic
+    for(int k = 0; k < nodes; k++){
+        for(int i = 0; i < nodes; i++){
+            for(int j = 0; j < nodes; j++){
+                if(dist[i][j] > dist[i][k] + dist[k][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                    via[i][j] = via[i][k];
+                }
+            }
+        }
+    }
+
+    // Print Final Routing Tables
+    for(int i = 0; i < nodes; i++){
+        cout << "\nRouting table for Node " << char('A' + i) << ":\n";
+        cout << left << setw(15) << "Destination"
+             << setw(10) << "Cost"
+             << setw(10) << "Next Hop"
+             << endl;
+
+        for(int j = 0; j < nodes; j++){
+            cout << left << setw(15) << char('A' + j)
+                 << setw(10) << dist[i][j];
+
+            if(via[i][j] == -1)
+                cout << setw(10) << "-" << endl;
+            else
+                cout << setw(10) << char('A' + via[i][j]) << endl;
+        }
+    }
+
+    return 0;
+}
