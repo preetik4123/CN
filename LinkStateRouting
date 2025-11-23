@@ -1,77 +1,89 @@
 #include <iostream>
+
 using namespace std;
+#define MAX 20
+#define INF 999
 
-#define INF 9999
-#define MAX 20   // maximum number of routers
-
-// Function to find router with minimum distance
-int minDistance(int dist[], bool visited[], int n) {
-    int minVal = INF, index = -1;
-
-    for (int i = 0; i < n; i++) {
-        if (!visited[i] && dist[i] <= minVal) {
+int minDist(int dist[] , bool visited[] , int n){
+    int minVal = 999;
+    int index = -1;
+    for(int i = 0; i<n;i++){
+        if(!visited[i] && dist[i] < minVal){
             minVal = dist[i];
             index = i;
         }
     }
     return index;
 }
+void printPath(int parent[],int j){
+    if(parent[j] == -1){
+        cout<<j;
+        return;
+    }
+    printPath(parent,parent[j]);
+    cout<<" -> "<<j;
+}
 
-void linkStateRouting(int graph[MAX][MAX], int src, int n) {
+void linkStateRouting(int graph[MAX][MAX] , int src ,int n){
     int dist[MAX];
     bool visited[MAX];
-
-    // Initialization
-    for (int i = 0; i < n; i++) {
+    int parent[MAX];
+    
+    for(int i = 0 ;i< n ;i++){
         dist[i] = INF;
         visited[i] = false;
+        parent[i] = -1;
+        
     }
-
-    dist[src] = 0;  // distance to itself = 0
-
-    // Dijkstra’s Algorithm
-    for (int i = 0; i < n - 1; i++) {
-        int u = minDistance(dist, visited, n);
-        visited[u] = true;
-
-        for (int v = 0; v < n; v++) {
-            if (!visited[v] && graph[u][v] != INF &&
-                dist[u] + graph[u][v] < dist[v])
-            {
-                dist[v] = dist[u] + graph[u][v];
+    dist[src] = 0;
+    for(int i = 0;i< n-1;i++){
+        int u = minDist(dist,visited,n);
+        if(u == -1) break;
+        visited[u];
+        
+        for(int v = 0;v<n;v++){
+            if(!visited[v] && graph[u][v] != INF && dist[u] + graph[u][v]< dist[v]){
+                dist[v] = dist[u]+graph[u][v];
+                parent[v] = u;
             }
         }
     }
-
-    // Output Routing Table
     cout << "\n--- LINK STATE ROUTING TABLE (Router " << src << ") ---\n";
-    for (int i = 0; i < n; i++) {
-        if (dist[i] == INF)
-            cout << "To Router " << i << " : No Path\n";
-        else
-            cout << "To Router " << i << " : " << dist[i] << endl;
+    for(int i = 0;i<n;i++) {
+        if(dist[i] == INF){
+             cout << "To Router " << i << " : No Path\n";
+        }
+        else{
+             cout << "To Router " << i << " : " << dist[i] << " , Path: ";
+             printPath(parent,i);
+             cout<<endl;
+        }
+    }
+    
+ 
+}
+
+int main(){
+    int n;
+int graph[MAX][MAX];
+int src;
+
+
+cout << "Enter number of routers: ";
+cin >> n;
+
+cout << "\nEnter Cost Adjacency Matrix (use 999 for no direct link):\n";
+for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+        cin >> graph[i][j];
     }
 }
 
-int main() {
-    int n;
-    int graph[MAX][MAX];
-    int src;
+cout << "\nEnter Source Router ID (0 to " << n - 1 << "): ";
+cin >> src;
 
-    cout << "Enter number of routers: ";
-    cin >> n;
+linkStateRouting(graph, src, n);
 
-    cout << "\nEnter Cost Adjacency Matrix (use 999 for no direct link):\n";
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            cin >> graph[i][j];
-        }
-    }
-
-    cout << "\nEnter Source Router ID (0 to " << n - 1 << "): ";
-    cin >> src;
-
-    linkStateRouting(graph, src, n);
-
-    return 0;
+return 0;
+    
 }
